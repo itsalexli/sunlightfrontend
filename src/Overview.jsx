@@ -35,19 +35,23 @@ export default function Overview() {
           </div>
         </div>
 
-        <div  className="inline-flex w-full mt-4 mx-auto">
+        <div  className="inline-flex w-full mt-6 mx-auto">
           <div>
             <p className="ml-10">Streak</p>
-            <p className="ml-16 font-bold text-3xl">26 days</p>
+            <p className="ml-10 font-bold text-3xl">26 days</p>
             <p className="ml-16 ">Since Janurary 1, 2025</p>
+          </div>
+
+          <div>
+            <button className="bg-gray-300 ml-10 mt-8 text-black px-5 py-2 hover:bg-gray-400">Daily Claim</button>
           </div>
         </div>
 
-        <div></div>
+        <hr className="mt-6 border-t border-gray-300 w-5/6 mx-auto " />
 
-        <div className="ml-10 mt-4">
+        <div className="flex justify-center mt-6">
           <button 
-            className="bg-gray-300 text-black px-6 py-2 rounded-md hover:bg-gray-400"
+            className="bg-[#013946] text-white font-bold px-6 py-3 hover:bg-[#436E95] hover:text-red-600"
             onClick={() => setIsModalOpen(true)}
           >
             Buy Holdings
