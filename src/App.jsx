@@ -6,6 +6,7 @@ import Overview from "./Overview";
 import Holdings from "./Holdings";
 import { useState } from "react";
 import Trade from "./Trade";
+import ApiTest from "./ApiTest";  
 
 function App() {
   const [tab, setTab] = useState("portfolio");
@@ -46,6 +47,9 @@ function App() {
           <Trade />
         </div>
       )}
+      <div className="mt-8">
+        <ApiTest />
+      </div>
     </>
   );
 }
