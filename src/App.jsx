@@ -8,6 +8,7 @@ import { useState } from "react";
 import Trade from "./Trade";
 import ApiTest from "./ApiTest";
 import { PortfolioProvider } from './context/PortfolioContext';
+import Forum from "./Forum"; // Import the Forum component
 
 function App() {
   const [tab, setTab] = useState("portfolio");
@@ -31,6 +32,13 @@ function App() {
           width="30"
           onClick={() => setTab("trade")}
         />
+        <Button
+          name="Forum"
+          content="Forum"
+          state={tab}
+          width="30"
+          onClick={() => setTab("forum")}
+        />
       </div>
       <TitleBox />
       <hr className="mt-4 border-t border-gray-300 w-4/5 mx-auto " />
@@ -43,9 +51,13 @@ function App() {
           <hr className="mt-4 border-t border-gray-300 w-4/5 mx-auto " />
           <Holdings />
         </div>
-      ) : (
+      ) : tab === "trade" ? (
         <div>
           <Trade />
+        </div>
+      ) : (
+        <div>
+          <Forum />
         </div>
       )}
       <div className="mt-8">

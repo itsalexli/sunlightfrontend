@@ -125,7 +125,7 @@ export default function Holdings() {
 
   // Component render
   return (
-    <div className="ml-42 mt-8">
+    <div className="mx-auto max-w-7xl px-4 mt-8">
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-2xl font-bold" style={{ color: "#013946" }}>Holdings</h2>
@@ -142,7 +142,7 @@ export default function Holdings() {
           Refresh
         </button>
       </div>
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="w-full mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-100">
@@ -232,7 +232,7 @@ export default function Holdings() {
                 max={selectedStock?.quantity}
                 min="0"
                 step="0.01"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="shadow appearance-none border rounded w-[400px] py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
             </div>
 
