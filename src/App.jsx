@@ -3,6 +3,7 @@ import Button from "./Button";
 import TitleBox from "./TitleBox";
 import Performance from "./Performance";
 import Overview from "./Overview";
+import Holdings from "./Holdings";
 
 function App() {
   return (
@@ -20,6 +21,10 @@ function App() {
         <Performance />
         <Overview />
       </div>
+
+      <hr className="mt-4 border-t border-gray-300 w-4/5 mx-auto " />
+
+      <Holdings />
     </>
   );
 }
