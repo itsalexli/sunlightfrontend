@@ -18,6 +18,8 @@ export default function Overview() {
           <p className=" ml-10 font-bold text-4xl">${accountValue}</p>
         </div>
 
+        <hr className="mt-6 border-t border-gray-300 w-5/6 mx-auto " />
+
         <div className="inline-flex mt-4 mx-auto">
           <div className="ml-4">
             <p className="ml-6">Today's change</p>
@@ -49,7 +51,7 @@ export default function Overview() {
 
         <hr className="mt-6 border-t border-gray-300 w-5/6 mx-auto " />
 
-        <div className="flex justify-center mt-6">
+        <div className="flex justify-center mt-4">
           <button 
             className="bg-[#013946] text-white font-bold px-6 py-3 hover:bg-[#436E95] hover:text-red-600"
             onClick={() => setIsModalOpen(true)}

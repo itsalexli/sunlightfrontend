@@ -36,7 +36,7 @@ export default function BuyModal({ isOpen, onClose }) {
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-gray-300">
-                    <th className="p-1 font-semibold">Company</th>
+                    <th className="p- font-semibold">Company</th>
                     <th className="p-1 font-semibold">Value</th>
                     <th className="p-1 font-semibold">Shares</th>
                     <th className="p-1 font-semibold">%</th>
@@ -73,29 +73,53 @@ export default function BuyModal({ isOpen, onClose }) {
             </div>
           </div>
                 ) : (
-<div className="px-10 py-6">
-              <button onClick={() => setPage(1)} className="text-blue-600 text-left">
-                &lt; back
-              </button>
+                    <div className="px-10 py-6">
+                    <button onClick={() => setPage(1)} className="text-black text-left">
+                      &lt; back
+                    </button>
+                
+                  
+                    <div className="bg-gray-100 p-6 mt-4">
 
-              <h2 className="text-lg font-bold text-[#013946] mt-2 text-center">Review Order</h2>
+                    <h2 className="text-lg font-bold text-[#013946] mb-4 text-center">Review Order</h2>
 
-              <div className="bg-gray-100 p-4 mt-4">
-                <p className="font-semibold">Order type: <span className="font-normal">Limit buy</span></p>
-                <p className="font-semibold">Account: <span className="font-normal">TFSA</span></p>
-                <p className="font-semibold">Cost: <span className="font-normal">$100</span></p>
-                <p className="font-semibold border-b border-gray-300 pb-2">
-                  Commission fee: <span className="font-normal">$4</span>
-                </p>
-                <p className="font-semibold mt-2">Total: <span className="font-normal">$104</span></p>
-              </div>
-
-              <div className="flex justify-center mt-4">
-                <button className="bg-red-500 text-white px-6 py-2 hover:bg-red-600">
-                  Confirm Purchase
-                </button>
-              </div>
-            </div>                )
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <p className="font-semibold">Order type:</p>
+                          <p className="font-thin">Limit buy</p>
+                        </div>
+                        
+                        <div className="flex justify-between">
+                          <p className="font-semibold">Account:</p>
+                          <p className="font-thin">TFSA</p>
+                        </div>
+                  
+                        <div className="flex justify-between">
+                          <p className="font-semibold">Cost:</p>
+                          <p className="font-thin">$100</p>
+                        </div>
+                  
+                        <div className="flex justify-between border-b border-gray-300 pb-2">
+                          <p className="font-semibold">Commission fee:</p>
+                          <p className="font-thin">$4</p>
+                        </div>
+                  
+                        <div className="flex justify-between mt-6">
+                          <p className="font-semibold">Total:</p>
+                          <p className="font-normal">$104</p>
+                        </div>
+                      </div>
+                    </div>
+                  
+                    <div className="flex justify-center mt-4">
+                      <button className="bg-gray-100 text-red-500 font-semibold px-6 py-2 hover:bg-gray-300"
+                      onClick={onClose}>
+                        Confirm Purchase
+                      </button>
+                    </div>
+                  </div>
+                           
+            )
             }
           
         </div>
