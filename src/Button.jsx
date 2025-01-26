@@ -1,10 +1,11 @@
 export default function Button({ name, state, width }) {
   const buttonStyle =
-    state === "fill" ? "bg-gray-700 text-white" : "bg-gray-200 text-black";
+    state === "fill" ? "bg-[#013946] text-white font-bold" : "bg-[#E6ECED] outline-2 outline-[#013946] text-white font-bold" ;
 
   return (
-    <button className={`mr-4 w-${width} px-4 py-2 ${buttonStyle}`}>
+    <button className={`mr-4 w-${width} px-6 py-3 ${buttonStyle}`}>
       {name}
     </button>
   );
 }
+
