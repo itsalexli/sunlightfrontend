@@ -5,30 +5,47 @@ import api from './services/api';
 import { usePortfolio } from './context/PortfolioContext';
 
 export default function Trade() {
+  // State Management
+  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  
+  // Data and loading states
   const [stockData, setStockData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Search functionality states
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  
+  // Buy modal states
   const [selectedStock, setSelectedStock] = useState(null);
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
+  
+  // Portfolio initialization feedback
   const [initializeMessage, setInitializeMessage] = useState('');
 
+  // Get portfolio refresh function from context
   const { refreshPortfolio } = usePortfolio();
 
+  // Load stock data when page changes or search state changes
   useEffect(() => {
     if (!isSearching) {
       loadData(currentPage);
     }
   }, [currentPage, isSearching]);
 
+  // Initialize test portfolio with starting balance
   const handleInitialize = async () => {
     try {
-      const response = await axios.post('http://localhost:8000/test/initialize');
-      if (response.data.success) {
+      const response = await api.initializePortfolio();
+      if (response.success) {
         setInitializeMessage('Portfolio initialized successfully!');
+        // Clear success message after 3 seconds
         setTimeout(() => setInitializeMessage(''), 3000);
+        
+        // Refresh the current page data
+        await loadData(currentPage);
       }
     } catch (error) {
       console.error('Error initializing portfolio:', error);
@@ -36,6 +53,7 @@ export default function Trade() {
     }
   };
 
+  // Fetch stock data for the current page
   const loadData = async (page) => {
     setIsLoading(true);
     try {
@@ -52,18 +70,22 @@ export default function Trade() {
     }
   };
 
+  // Handle stock search functionality
   const handleSearch = async () => {
+    // If search term is empty, reset search state
     if (!searchTerm.trim()) {
       setIsSearching(false);
       return;
     }
 
+    // If stock is already in current data, filter to show only that stock
     if (stockData[searchTerm]) {
       setStockData({ [searchTerm]: stockData[searchTerm] });
       setCurrentPage(1);
       return;
     }
 
+    // Otherwise, fetch the specific stock data
     setIsSearching(true);
     setIsLoading(true);
     try {
@@ -81,12 +103,14 @@ export default function Trade() {
     }
   };
 
+  // Clear search and restore full stock list
   const clearSearch = () => {
     setSearchTerm("");
     setIsSearching(false);
-    loadData(currentPage); // Reload original data
+    loadData(currentPage);
   };
 
+  // Handle pagination
   const changePage = (delta) => {
     const newPage = currentPage + delta;
     if (newPage > 0 && newPage <= totalPages) {
@@ -94,11 +118,13 @@ export default function Trade() {
     }
   };
 
+  // Format number values for display
   const formatNumber = (value) => {
     if (typeof value !== "number") return "N/A";
     return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
   };
 
+  // Format market cap values with appropriate suffix (B, M, etc.)
   const formatMarketCap = (value) => {
     if (!value) return "N/A";
     if (value >= 1e12) return `${(value / 1e12).toFixed(2)}T`;
@@ -107,6 +133,7 @@ export default function Trade() {
     return value.toLocaleString();
   };
 
+  // Handle opening the buy modal for a stock
   const handleBuyClick = (ticker, stockData) => {
     setSelectedStock({
       symbol: ticker,
@@ -116,6 +143,7 @@ export default function Trade() {
     setIsBuyModalOpen(true);
   };
 
+  // Handle successful stock purchase
   const handlePurchaseComplete = async (updatedPortfolio) => {
     try {
       console.log('Purchase completed, new portfolio state:', updatedPortfolio);
@@ -346,16 +374,6 @@ export default function Trade() {
         stock={selectedStock}
         onPurchaseComplete={handlePurchaseComplete}
       />
-
-      {/* Optional: Add a refresh button to the trade table */}
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={() => loadData(currentPage)}
-          className="px-4 py-2 bg-[#013946] text-white rounded hover:bg-[#436E95]"
-        >
-          Refresh Table
-        </button>
-      </div>
     </div>
   );
 }

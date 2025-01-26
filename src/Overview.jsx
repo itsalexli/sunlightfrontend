@@ -1,10 +1,24 @@
 import { useState, useEffect } from "react";
 import BuyModal from "./BuyModal"; // Import BuyModal component
+import Popup from "./Popup";  // Import Popup component
 import api from './services/api';
 import { usePortfolio } from './context/PortfolioContext';
 
+/**
+ * Overview Component
+ * Displays the main portfolio dashboard including:
+ * - Total account value
+ * - Daily/Total returns
+ * - Buying power
+ * - Streak information
+ * - Daily claim functionality
+ */
 export default function Overview() {
+  // State Management
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  
+  // Portfolio data state with default values
   const [portfolioData, setPortfolioData] = useState({
     totalValue: 0,
     cashBalance: 0,
@@ -18,11 +32,16 @@ export default function Overview() {
     initialInvestment: 0,
     currentValue: 0
   });
+
+  // Loading and error states
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Get portfolio context for updates
   const { portfolioVersion, refreshPortfolio } = usePortfolio();
 
-  // Format currency values
+  // Utility Functions
+  // Format currency values with $ and commas
   const formatCurrency = (value) => {
     return value.toLocaleString('en-US', {
       style: 'currency',
@@ -32,19 +51,21 @@ export default function Overview() {
     });
   };
 
-  // Format percentage values
+  // Format percentage values with % sign
   const formatPercentage = (value) => {
     return value.toFixed(2) + '%';
   };
 
+  // Fetch and update portfolio data
   useEffect(() => {
     const fetchPortfolioData = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        // Try to get cached data first
+        // Try cached data first, then fetch from server
         const data = api.getCachedPortfolio() || await api.getPortfolioDetails();
         
+        // Transform API data into component state
         setPortfolioData({
           totalValue: data.all_time_returns?.current_value,
           cashBalance: data.buying_power || 0,
@@ -66,20 +87,22 @@ export default function Overview() {
       }
     };
 
-    // Listen for portfolio updates
+    // Listen for portfolio updates from other components
     const handlePortfolioUpdate = (event) => {
       const newData = event.detail;
       console.log('Portfolio update received in Overview:', newData);
       fetchPortfolioData();
     };
 
+    // Set up event listener and initial fetch
     window.addEventListener('portfolioUpdate', handlePortfolioUpdate);
     fetchPortfolioData();
 
+    // Cleanup event listener
     return () => window.removeEventListener('portfolioUpdate', handlePortfolioUpdate);
   }, [portfolioVersion]);
 
-  // Format date for streak display
+  // Format date for streak display (e.g., "January 1, 2024")
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -90,10 +113,17 @@ export default function Overview() {
     });
   };
 
+  // Handle daily reward claim button click
+  const handleDailyClaim = () => {
+    setIsPopupOpen(true);
+  };
+
+  // Show error state if fetch failed
   if (error) {
     return <div className="error-message">{error}</div>;
   }
 
+  // Component render
   return (
     <div className="ml-4 mt-0">
       <div className="flex justify-between items-center">
@@ -158,7 +188,10 @@ export default function Overview() {
               </div>
 
               <div>
-                <button className="bg-gray-300 ml-10 mt-8 text-black px-5 py-2 hover:bg-gray-400">
+                <button 
+                  onClick={handleDailyClaim}
+                  className="bg-gray-300 ml-10 mt-8 text-black px-5 py-2 hover:bg-gray-400"
+                >
                   Daily Claim
                 </button>
               </div>
@@ -179,6 +212,23 @@ export default function Overview() {
       </div>
 
       <BuyModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      
+      <Popup 
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        title="Daily Reward"
+        message="Claim your daily reward!"
+        onCardFlip={(amount) => {
+          // Update portfolio data directly
+          setPortfolioData(prev => ({
+            ...prev,
+            cashBalance: prev.cashBalance + amount,
+            totalValue: prev.totalValue + amount,
+            currentValue: prev.currentValue + amount,
+            streak: prev.streak + 1  // Increment streak by 1
+          }));
+        }}
+      />
     </div>
   );
 }
