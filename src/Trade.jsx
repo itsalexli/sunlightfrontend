@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import BuyStockModal from "./BuyStockModal";
+import api from './services/api';
+import { usePortfolio } from './context/PortfolioContext';
 
 export default function Trade() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -8,6 +11,11 @@ export default function Trade() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedStock, setSelectedStock] = useState(null);
+  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
+  const [initializeMessage, setInitializeMessage] = useState('');
+
+  const { refreshPortfolio } = usePortfolio();
 
   useEffect(() => {
     if (!isSearching) {
@@ -15,11 +23,24 @@ export default function Trade() {
     }
   }, [currentPage, isSearching]);
 
+  const handleInitialize = async () => {
+    try {
+      const response = await axios.post('http://localhost:8000/test/initialize');
+      if (response.data.success) {
+        setInitializeMessage('Portfolio initialized successfully!');
+        setTimeout(() => setInitializeMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error initializing portfolio:', error);
+      setInitializeMessage('Failed to initialize portfolio');
+    }
+  };
+
   const loadData = async (page) => {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:8080/sp500-data?page=${page}`,
+        `http://localhost:8000/api/sp500-data?page=${page}`,
       );
       const { data } = response;
       setTotalPages(data.total_pages);
@@ -86,6 +107,47 @@ export default function Trade() {
     return value.toLocaleString();
   };
 
+  const handleBuyClick = (ticker, stockData) => {
+    setSelectedStock({
+      symbol: ticker,
+      price: stockData.Ask || stockData.Bid || stockData.Open, // Use first available price
+      ...stockData
+    });
+    setIsBuyModalOpen(true);
+  };
+
+  const handlePurchaseComplete = async (updatedPortfolio) => {
+    try {
+      console.log('Purchase completed, new portfolio state:', updatedPortfolio);
+      
+      // Refresh portfolio data across all components
+      refreshPortfolio();
+      
+      // Close the modal
+      setIsBuyModalOpen(false);
+      
+      // Show success message
+      const message = document.createElement('div');
+      message.className = 'fixed top-4 right-4 bg-green-100 text-green-700 px-4 py-2 rounded shadow-lg z-50';
+      message.textContent = 'Purchase successful! Portfolio updated.';
+      document.body.appendChild(message);
+      setTimeout(() => message.remove(), 3000);
+
+      // Refresh the trade table data
+      await loadData(currentPage);
+      
+    } catch (error) {
+      console.error('Error handling purchase completion:', error);
+      
+      // Show error message
+      const errorMessage = document.createElement('div');
+      errorMessage.className = 'fixed top-4 right-4 bg-red-100 text-red-700 px-4 py-2 rounded shadow-lg z-50';
+      errorMessage.textContent = 'Error updating portfolio. Please refresh the page.';
+      document.body.appendChild(errorMessage);
+      setTimeout(() => errorMessage.remove(), 3000);
+    }
+  };
+
   // Loading Skeleton
   const renderSkeleton = () => {
     return Array.from({ length: 10 }).map((_, index) => (
@@ -120,10 +182,53 @@ export default function Trade() {
 
   return (
     <div className="container mx-auto p-4">
-      <div className="flex justify-between">
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
-          S&P 500 Stock Data
-        </h1>
+      <div className="flex flex-col">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">
+            S&P 500 Stock Data
+          </h1>
+          
+          {/* Initialize Portfolio Button */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleInitialize}
+              className="px-4 py-2 bg-[#013946] text-white rounded hover:bg-[#436E95]"
+            >
+              Initialize Test Portfolio
+            </button>
+            {initializeMessage && (
+              <span className={`ml-2 ${initializeMessage.includes('Failed') ? 'text-red-500' : 'text-green-500'}`}>
+                {initializeMessage}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className="flex gap-2 mb-6">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search stocks..."
+            className="flex-1 p-2 border border-gray-300 rounded"
+          />
+          <button
+            onClick={handleSearch}
+            className="px-4 py-2 bg-[#013946] text-white rounded hover:bg-[#436E95]"
+          >
+            Search
+          </button>
+          {isSearching && (
+            <button
+              onClick={clearSearch}
+              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
         {/* Pagination */}
         {!isSearching && (
           <div className="flex justify-center items-center gap-4 mb-6">
@@ -146,102 +251,110 @@ export default function Trade() {
             </button>
           </div>
         )}
-        {/* Search Bar */}
-        <div className="flex justify-center items-center gap-2 mb-6">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by ticker symbol (e.g., AAPL)"
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            onClick={handleSearch}
-            disabled={isLoading}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-            Search
-          </button>
-          {isSearching && (
-            <button
-              onClick={clearSearch}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-            >
-              Clear Search
-            </button>
-          )}
+
+        {/* Loading Indicator */}
+        {isLoading && (
+          <div className="text-center text-gray-600 mb-4">Loading data...</div>
+        )}
+
+        {/* Table */}
+        <div className="overflow-x-auto bg-white rounded-lg shadow">
+          <table className="min-w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ticker
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Bid
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ask
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Open
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  High
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Low
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Market Cap
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  P/E Ratio
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {isLoading
+                ? renderSkeleton()
+                : Object.entries(stockData).map(([ticker, data]) => (
+                    <tr key={ticker} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {ticker}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {formatNumber(data?.Bid)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {formatNumber(data?.Ask)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {formatNumber(data?.Open)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {formatNumber(data?.High)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {formatNumber(data?.Low)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {formatMarketCap(data?.["Market Cap"])}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {formatNumber(data?.["P/E Ratio"])}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        <button
+                          onClick={() => handleBuyClick(ticker, data)}
+                          className="bg-[#013946] text-white px-3 py-1 rounded hover:bg-[#436E95]"
+                        >
+                          Buy
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* Loading Indicator */}
-      {isLoading && (
-        <div className="text-center text-gray-600 mb-4">Loading data...</div>
-      )}
+      {/* Buy Modal */}
+      <BuyStockModal
+        isOpen={isBuyModalOpen}
+        onClose={() => {
+          setIsBuyModalOpen(false);
+          // Refresh data when modal is closed
+          loadData(currentPage);
+        }}
+        stock={selectedStock}
+        onPurchaseComplete={handlePurchaseComplete}
+      />
 
-      {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-lg shadow">
-        <table className="min-w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ticker
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Bid
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ask
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Open
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                High
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Low
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Market Cap
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                P/E Ratio
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {isLoading
-              ? renderSkeleton()
-              : Object.entries(stockData).map(([ticker, data]) => (
-                  <tr key={ticker} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {ticker}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
-                      {formatNumber(data?.Bid)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
-                      {formatNumber(data?.Ask)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
-                      {formatNumber(data?.Open)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
-                      {formatNumber(data?.High)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
-                      {formatNumber(data?.Low)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
-                      {formatMarketCap(data?.["Market Cap"])}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
-                      {formatNumber(data?.["P/E Ratio"])}
-                    </td>
-                  </tr>
-                ))}
-          </tbody>
-        </table>
+      {/* Optional: Add a refresh button to the trade table */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => loadData(currentPage)}
+          className="px-4 py-2 bg-[#013946] text-white rounded hover:bg-[#436E95]"
+        >
+          Refresh Table
+        </button>
       </div>
     </div>
   );

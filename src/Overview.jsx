@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import BuyModal from "./BuyModal"; // Import BuyModal component
 import api from './services/api';
+import { usePortfolio } from './context/PortfolioContext';
 
 export default function Overview() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,6 +20,7 @@ export default function Overview() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { portfolioVersion, refreshPortfolio } = usePortfolio();
 
   // Format currency values
   const formatCurrency = (value) => {
@@ -40,7 +42,8 @@ export default function Overview() {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await api.getPortfolioDetails();
+        // Try to get cached data first
+        const data = api.getCachedPortfolio() || await api.getPortfolioDetails();
         
         setPortfolioData({
           totalValue: data.all_time_returns?.current_value,
@@ -56,18 +59,25 @@ export default function Overview() {
           currentValue: data.all_time_returns?.current_value || 0
         });
       } catch (error) {
-        console.error('Detailed error:', {
-          message: error.message,
-          stack: error.stack
-        });
-        setError(`Failed to load portfolio data: ${error.message}`);
+        console.error('Error fetching portfolio data:', error);
+        setError('Failed to load portfolio data');
       } finally {
         setIsLoading(false);
       }
     };
 
+    // Listen for portfolio updates
+    const handlePortfolioUpdate = (event) => {
+      const newData = event.detail;
+      console.log('Portfolio update received in Overview:', newData);
+      fetchPortfolioData();
+    };
+
+    window.addEventListener('portfolioUpdate', handlePortfolioUpdate);
     fetchPortfolioData();
-  }, []);
+
+    return () => window.removeEventListener('portfolioUpdate', handlePortfolioUpdate);
+  }, [portfolioVersion]);
 
   // Format date for streak display
   const formatDate = (dateString) => {
@@ -86,7 +96,15 @@ export default function Overview() {
 
   return (
     <div className="ml-4 mt-0">
-      <p style={{ color: "#013946" }} className="font-bold">Overview</p>
+      <div className="flex justify-between items-center">
+        <p style={{ color: "#013946" }} className="font-bold">Overview</p>
+        <button
+          onClick={refreshPortfolio}
+          className="px-4 py-2 bg-[#013946] text-white rounded hover:bg-[#436E95]"
+        >
+          Refresh Overview
+        </button>
+      </div>
       <div className="w-125 h-100 bg-[#F3F3F3] mt-2">
         {isLoading ? (
           <div className="flex justify-center items-center h-full">

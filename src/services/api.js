@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000/test';  // Your Flask server URL
+const API_BASE_URL = 'http://localhost:8000/test';
 
 export const tradingApi = {
     // User Management
@@ -90,15 +90,36 @@ const api = {
     },
 
     // Trading Operations
-    async buyStock(symbol, amount) {
+    async buyStock(symbol, shares, amount) {
         try {
+            const requestBody = {
+                symbol: symbol
+            };
+            
+            if (amount) {
+                requestBody.amount = amount;
+            } else if (shares) {
+                requestBody.shares = shares;
+            }
+
             const response = await fetch(`${API_BASE_URL}/buy`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ symbol, amount })
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
             });
-            if (!response.ok) throw new Error('Buy order failed');
-            return await response.json();
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error);
+            }
+
+            // Cache the latest portfolio data
+            this.setCachedPortfolio(data.portfolio);
+
+            return data;
         } catch (error) {
             console.error('Error buying stock:', error);
             throw error;
@@ -170,14 +191,58 @@ const api = {
         }
     },
 
-    // Add this new method
+    // Add a cache for the latest portfolio data
+    _latestPortfolio: null,
+
+    // Method to set cached portfolio data
+    setCachedPortfolio(data) {
+        this._latestPortfolio = data;
+        // Dispatch an event to notify components
+        window.dispatchEvent(new CustomEvent('portfolioUpdate', { detail: data }));
+    },
+
+    // Method to get cached portfolio data
+    getCachedPortfolio() {
+        return this._latestPortfolio;
+    },
+
     async getPortfolioDetails() {
         try {
+            // If we have cached data, use it
+            if (this._latestPortfolio) {
+                console.log('Using cached portfolio data:', this._latestPortfolio);
+                return this._latestPortfolio;
+            }
+
+            // Otherwise fetch from server
             const response = await fetch(`${API_BASE_URL}/portfolio/details`);
             if (!response.ok) throw new Error('Failed to fetch portfolio details');
-            return await response.json();
+            
+            const data = await response.json();
+            this.setCachedPortfolio(data); // Cache the fetched data
+            return data;
         } catch (error) {
             console.error('Error fetching portfolio details:', error);
+            throw error;
+        }
+    },
+
+    async initializePortfolio() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/initialize`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to initialize portfolio');
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Error initializing portfolio:', error);
             throw error;
         }
     }
