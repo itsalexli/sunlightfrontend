@@ -6,12 +6,14 @@ import Overview from "./Overview";
 import Holdings from "./Holdings";
 import { useState } from "react";
 import Trade from "./Trade";
+import ApiTest from "./ApiTest";
+import { PortfolioProvider } from './context/PortfolioContext';
 
 function App() {
   const [tab, setTab] = useState("portfolio");
 
   return (
-    <>
+    <PortfolioProvider>
       <Header />
       <hr className="mt-0 mb-4 border-t border-gray-300 w-full mx-auto" />
       <div className="ml-42">
@@ -46,7 +48,10 @@ function App() {
           <Trade />
         </div>
       )}
-    </>
+      <div className="mt-8">
+        <ApiTest />
+      </div>
+    </PortfolioProvider>
   );
 }
 

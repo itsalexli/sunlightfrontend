@@ -24,7 +24,7 @@ export default function Trade() {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:8080/sp500-data?page=${page}`,
+        `http://localhost:8080/api/sp500-data?page=${page}`,
       );
       const { data } = response;
       setTotalPages(data.total_pages);
@@ -52,8 +52,9 @@ export default function Trade() {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:8080/stock-data/${searchTerm}`,
+        `http://localhost:8080/api/stock-data/${searchTerm}`,
       );
+      console.log(response);
       const { data } = response;
       setStockData(data); // Replace table data with search result
       setCurrentPage(1); // Reset pagination
@@ -125,7 +126,6 @@ export default function Trade() {
       </tr>
     ));
   };
-  console.log(modalData);
 
   return (
     <div className="container mx-auto p-4">
