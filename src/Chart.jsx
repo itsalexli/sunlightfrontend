@@ -34,7 +34,7 @@ const salesData = [
   },
   {
     name: "Jun",
-    accountValue: 170000,
+    accountValue: 172070,
   },
 ];
 
