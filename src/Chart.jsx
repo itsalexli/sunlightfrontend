@@ -14,27 +14,27 @@ import {
 const salesData = [
   {
     name: "Jan",
-    accountValue: 4000,
+    accountValue: 10000,
   },
   {
     name: "Feb",
-    accountValue: 3000,
+    accountValue: 120000,
   },
   {
     name: "Mar",
-    accountValue: 9800,
+    accountValue: 138000,
   },
   {
     name: "Apr",
-    accountValue: 3908,
+    accountValue: 155000,
   },
   {
     name: "May",
-    accountValue: 4800,
+    accountValue: 164000,
   },
   {
     name: "Jun",
-    accountValue: 3800,
+    accountValue: 170000,
   },
 ];
 
