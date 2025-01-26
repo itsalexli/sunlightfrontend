@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import Logo from "./assets/sunlife_logo.jpg";
 
 export default function Popup({ isOpen, onClose }) {
-  if (!isOpen) return null;
-
   const [flipped, setFlipped] = useState([false, false, false]);
   const [isFrozen, setIsFrozen] = useState(false);
   const [amounts, setAmounts] = useState([]);
@@ -13,12 +11,14 @@ export default function Popup({ isOpen, onClose }) {
     setAmounts(initialAmounts.sort(() => Math.random() - 0.5));
   }, []);
 
+  if (!isOpen) return null;
+
   const handleFlip = (index) => {
     if (isFrozen) return;
 
     setIsFrozen(true);
     setFlipped((prevState) =>
-      prevState.map((isFlipped, i) => (i === index ? true : isFlipped))
+      prevState.map((isFlipped, i) => (i === index ? true : isFlipped)),
     );
 
     setTimeout(() => {
