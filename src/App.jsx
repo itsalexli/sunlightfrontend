@@ -33,9 +33,11 @@ function App() {
       <TitleBox />
       <hr className="mt-4 border-t border-gray-300 w-4/5 mx-auto " />
       {tab === "portfolio" ? (
-        <div className="flex w-full space-x-8 mt-10">
-          <Performance />
-          <Overview />
+        <div>
+          <div className="flex w-full space-x-8 mt-10">
+            <Performance />
+            <Overview />
+          </div>
           <hr className="mt-4 border-t border-gray-300 w-4/5 mx-auto " />
           <Holdings />
         </div>
