@@ -128,12 +128,6 @@ export default function Overview() {
     <div className="ml-4 mt-0">
       <div className="flex justify-between items-center">
         <p style={{ color: "#013946" }} className="font-bold">Overview</p>
-        <button
-          onClick={refreshPortfolio}
-          className="px-4 py-2 bg-[#013946] text-white rounded hover:bg-[#436E95]"
-        >
-          Refresh Overview
-        </button>
       </div>
       <div className="w-125 h-100 bg-[#F3F3F3] mt-2">
         {isLoading ? (
@@ -199,7 +193,7 @@ export default function Overview() {
 
             <hr className="mt-6 border-t border-gray-300 w-5/6 mx-auto" />
 
-            <div className="flex justify-center mt-4">
+            <div className="flex justify-center mt-1">
               <button 
                 className="bg-[#013946] text-white font-bold px-6 py-3 hover:bg-[#436E95] hover:text-red-600"
                 onClick={() => setIsModalOpen(true)}
